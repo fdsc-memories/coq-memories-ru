@@ -1,0 +1,13 @@
+﻿https://coq.inria.fr
+
+https://coq.inria.fr/distrib/current/refman/
+	https://coq.inria.fr/refman/
+https://coq.inria.fr/distrib/current/stdlib/
+	https://coq.inria.fr/stdlib/
+
+https://github.com/coq/coq/
+
+
+https://habr.com/ru/post/182442/
+
+
