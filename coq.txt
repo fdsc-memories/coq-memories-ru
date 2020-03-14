@@ -4,7 +4,7 @@
 		объявление типа-перечисления
 		объявление модуля
 		объявление нотации для операции
-		Compute, Example, Definition, match, Inductive
+		Compute, Example, Definition, match, Inductive, Admitted
 	2.v
 		объявление типа-кортежа
 		объявление рекурсивных функций (Fixpoint)
@@ -12,6 +12,6 @@
 	2-nat.v
 		вложенные match
 		работа со стандартным типом nat
-		Theorem: доказательства через simpl
+		Theorem: доказательства через тактики reflexivity, rewrite, destruct
 		
 
