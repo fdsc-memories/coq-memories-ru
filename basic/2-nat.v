@@ -46,6 +46,9 @@ Proof.
   reflexivity.
 Qed.
 
+(* Обратите внимание на то, что происходит при rewrite -> H
+Он перезаписывает, фактически, обе стороны выражения в одной операции
+ *)
 Theorem mult_S_1 : forall n m : nat,
   m = S n ->
   m * (1 + n) = m * m.
@@ -211,15 +214,21 @@ eqn:E - это, по сути, именование гипотезы n=O или 
 
 Далее каждый путь проходим отдельно, разделяя его оператором "-"
 (оператор называется "пуля" [bullets])
+
+При вложенных destruct пули чередуются с "-", "+", "*"
+(не понял, есть ли какой-то обязательный порядок)
+Также вместо пуль можно заключать подзадачи в скобки, см. ниже plus_n_0_Vin3,
+причём скобки совместимы с пулями на других уровнях,
+то есть в теореме можно использовать и то, и то
 *)
 Theorem plus_0_n_Vin3 : forall n : nat, (plusVin3 0 n) = n.
 Proof.
   intros n.
   destruct n as [| n'] eqn:E.
-  -
+  - (* E: n = 0 *)
   simpl.
   reflexivity.
-  -
+  - (* E: n = S n' *)
   simpl.
   reflexivity.
 Qed.
@@ -227,13 +236,17 @@ Qed.
 Theorem plus_n_0_Vin3 : forall n : nat, (plusVin3 n 0) = n.
 Proof.
   intros n.
-  destruct n as [| n'] eqn:E.
-  -
-  simpl.
-  reflexivity.
-  -
-  simpl.
-  reflexivity.
+  {
+	  destruct n as [| n'] eqn:E.
+	  {
+		simpl.
+		reflexivity.
+	  }
+	  {
+		simpl.
+		reflexivity.
+	  }
+  }
 Qed.
 
 (* Доказательство, полностью идентичное тому, что выше,
@@ -246,6 +259,29 @@ Theorem plus_n_0_Vin3_2 : forall n : nat, (plusVin3 n 0) = n.
 Proof.
   intros n.
   destruct n.
+  reflexivity.
+  reflexivity.
+Qed.
+
+(*
+Ещё более кратко записанное доказательство, абсолютно идентичное выше
+intros [|n'] является сокращением для intros n. destruct n as [|n'].
+Однако, eqn:E теперь записать уже не где (если он нужен)
+*)
+Theorem plus_n_0_Vin3_3 : forall n : nat, (plusVin3 n 0) = n.
+Proof.
+  intros [|n'].
+  reflexivity.
+  reflexivity.
+Qed.
+
+(*
+intros [] - если мы хотим избежать указания аргументов
+Если аргументов несколько, их можно поделить сразу: intros [] [].
+*)
+Theorem plus_n_0_Vin3_4 : forall n : nat, (plusVin3 n 0) = n.
+Proof.
+  intros [].
   reflexivity.
   reflexivity.
 Qed.
@@ -271,11 +307,15 @@ Proof.
   destruct n as [|n'].
 -
   destruct m as [|m'].
+  +
   simpl. reflexivity.
+  +
   simpl. reflexivity.
 -
   destruct m as [|m'].
+  +
   simpl. reflexivity.
+  +
   simpl. reflexivity.
 Qed.
 *)
@@ -309,4 +349,131 @@ Proof.
   -
   simpl. reflexivity.
 Qed.
+*)
+
+(*
+Учебные доказательства из учебника
+eqb сравнивает два натуральных числа
+Теорема: для любых n верно 0 != n + 1
+*)
+Fixpoint eqb (n m : nat) : bool :=
+  match n with
+  | O => match m with
+         | O => true
+         | S m' => false
+         end
+  | S n' => match m with
+            | O => false
+            | S m' => eqb n' m'
+            end
+  end.
+
+Notation "x =? y" := (eqb x y) (at level 70) : nat_scope.
+Theorem zero_nbeq_plus_1 : forall n : nat,
+  0 =? (n + 1) = false.
+Proof.
+	intros [].
+	* simpl. reflexivity.
+	* simpl. reflexivity.
+Qed.
+
+Theorem Ex1: forall b c: bool, b = true -> c = true -> andb b c = true.
+Proof.
+	intros b c.
+	intros H1 H2.
+	rewrite -> H1. rewrite -> H2.
+	simpl. reflexivity.
+Qed.
+
+(*
+Учебные доказательства из учебника
+Если b and c == true, то c == true
+Обратим внимание на то, что rewrite <- H перезаписывает значения true на значения andb b c
+
+При решении задачи используем это
+Подставляем в c = true операцию andb b c
+Когда операция andb b c не равна true, с также не равен true
+Поэтому, случайно, это доказательство работает и считается корректным
+В принципе, доказательство немного мошенническое, я бы сказал, т.к. оно доказывает немного другое, более общее, утверждение
+*)
+
+Theorem andb_true_elim2 : forall b c : bool,
+  andb b c = true -> c = true.
+Proof.
+	intros b c.
+	intros H.
+	destruct b as [] eqn:E.
+	* destruct c as [] eqn:F.
+		+ simpl. reflexivity.
+		+ rewrite <- H. simpl. reflexivity.
+	* destruct c as [] eqn:F.
+		+ rewrite <- H. simpl. reflexivity.
+		+ rewrite <- H. simpl. reflexivity.
+Qed.
+
+(*
+Можно доказать такую забавную теорему, она идентична предыдущей
+*)
+Theorem andb_true_elim2_2 : forall b c : bool,
+  andb b c = true -> c = andb b c.
+Proof.
+	intros b c.
+	intros H.
+	destruct b as [] eqn:E.
+	* destruct c as [] eqn:F.
+		+ simpl. reflexivity.
+		+ rewrite <- H. simpl. reflexivity.
+	* destruct c as [] eqn:F.
+		+ rewrite <- H. simpl. reflexivity.
+		+ simpl. reflexivity.
+Qed.
+
+
+(*
+Пробуем таким же способом доказать другую теорему
+*)
+Definition func1(a b: bool): bool :=
+match a, b with
+	| true,  true  => false
+	| true,  false => false
+	| false, true  => true
+	| false, false => false
+end.
+
+
+Theorem func1_true_elim2 : forall b c : bool,
+  func1 b c = true -> c = true.
+Proof.
+	intros b c.
+	intros H.
+	destruct b as [] eqn:E.
+	* destruct c as [] eqn:F.
+		+ simpl. reflexivity.
+		+ rewrite <- H. simpl. reflexivity.
+	* destruct c as [] eqn:F.
+		+ rewrite <- H. simpl. reflexivity.
+		+ rewrite <- H. simpl. reflexivity.
+Qed.
+
+(*
+Удалось доказать и её
+
+Почему это работает?
+Если func1 b c = true -> c = true , то в классической логике верно и 
+c = false -> func1 b c = false
+На этом, похоже, и выезжает движок
+
+Забавно, что такая аксиома явно здесь не применяется, но, по сути,
+неявно отрабатывается движком тактикой rewrite <- H
+Т.к. там, где c == false условие теоремы тоже false и равенство H снова получается
+
+Вообще говоря, это довольно противоречиво, т.к., очевидно,
+что подставляя на место true наше условие теоремы,
+мы создаём не тождество, кто сказал, что оно обязано выполняться при нарушении условия теоремы?
+Что, если используемая аксиома не работает?
+
+Если аксиома не работает, то, логично, мы всё равно не докажем чего-то такого, чего не должны доказать. Т.к. условие теоремы работает как тождество там, где должно, а в остальных случаях будет работать "случайно" или не работать: то есть доказать что-либо может не получится, но то, что не должно быть доказано, не докажется.
+
+
+И как думать так, чтобы rewrite <- H использовать таким образом шаблонно?
 *)
